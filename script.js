@@ -15,11 +15,6 @@ const copyCodeBtn = document.getElementById('copyCodeBtn');
 const loadCodeBtn = document.getElementById('loadCodeBtn');
 const previewCodeBtn = document.getElementById('previewCodeBtn');
 const loadSampleBtn = document.getElementById('loadSampleBtn');
-const imageInput = document.getElementById('imageImport');
-const importOptions = document.getElementById('importOptions');
-const thresholdInput = document.getElementById('thresholdInput');
-const thresholdValue = document.getElementById('thresholdValue');
-const applyImageBtn = document.getElementById('applyImageBtn');
 
 const state = {
   width: 16,
@@ -28,7 +23,6 @@ const state = {
   tool: 'draw',
   isDragging: false,
   dragValue: true,
-  importedImage: null,
 };
 
 function makePixels(width, height) {
@@ -122,6 +116,25 @@ function getMouseCell(event) {
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
+}
+
+function applyToolAtCell(x, y) {
+  if (x < 0 || y < 0 || x >= state.width || y >= state.height) return;
+
+  if (state.tool === 'draw') {
+    state.pixels[y][x] = true;
+    state.dragValue = true;
+  } else if (state.tool === 'erase') {
+    state.pixels[y][x] = false;
+    state.dragValue = false;
+  } else if (state.tool === 'invert') {
+    state.pixels[y][x] = !state.pixels[y][x];
+    state.dragValue = state.pixels[y][x];
+  }
+
+  renderEditor();
+  renderPreview();
+  refreshCode();
 }
 
 function refreshCode() {
@@ -233,17 +246,77 @@ function parseCodeIntoPixels(source) {
   refreshCode();
 }
 
+function imageToPixels(imageData, targetWidth, targetHeight) {
+  const pixels = makePixels(targetWidth, targetHeight);
+  
+  for (let y = 0; y < targetHeight; y += 1) {
+    for (let x = 0; x < targetWidth; x += 1) {
+      // Map target pixel to source image coordinates
+      const srcX = Math.floor((x / targetWidth) * imageData.width);
+      const srcY = Math.floor((y / targetHeight) * imageData.height);
+      
+      // Get pixel data
+      const index = (srcY * imageData.width + srcX) * 4;
+      const r = imageData.data[index];
+      const g = imageData.data[index + 1];
+      const b = imageData.data[index + 2];
+      
+      // Convert to grayscale
+      const gray = (r + g + b) / 3;
+      
+      // Threshold: pixel is "on" if darker than 128
+      pixels[y][x] = gray < 128;
+    }
+  }
+  
+  return pixels;
+}
+
+function handleImageUpload(file) {
+  if (!file.type.startsWith('image/')) {
+    alert('Please select an image file.');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const img = new Image();
+    img.onload = () => {
+      // Create a temporary canvas to get image data
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = img.width;
+      tempCanvas.height = img.height;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.drawImage(img, 0, 0);
+      
+      const imageData = tempCtx.getImageData(0, 0, img.width, img.height);
+      
+      // Convert image to pixels respecting current canvas size
+      state.pixels = imageToPixels(imageData, state.width, state.height);
+      
+      renderEditor();
+      renderPreview();
+      refreshCode();
+    };
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 function handleCanvasPointerDown(event) {
   state.isDragging = true;
   const cell = getMouseCell(event);
   const currentValue = state.pixels[cell.y][cell.x];
 
   if (state.tool === 'draw') {
+    state.dragValue = true;
     state.pixels[cell.y][cell.x] = true;
   } else if (state.tool === 'erase') {
+    state.dragValue = false;
     state.pixels[cell.y][cell.x] = false;
   } else if (state.tool === 'invert') {
-    state.pixels[cell.y][cell.x] = !currentValue;
+    state.dragValue = !currentValue;
+    state.pixels[cell.y][cell.x] = state.dragValue;
   }
 
   renderEditor();
@@ -271,101 +344,6 @@ function handleCanvasPointerMove(event) {
 function handleCanvasPointerUp() {
   state.isDragging = false;
 }
-
-function clampImportedDimensions(width, height) {
-  const maxSide = 256;
-  const maxRatio = Math.max(width, height);
-
-  if (maxRatio <= maxSide) {
-    return { width, height };
-  }
-
-  const scale = maxSide / maxRatio;
-  return {
-    width: Math.max(1, Math.round(width * scale)),
-    height: Math.max(1, Math.round(height * scale)),
-  };
-}
-
-function bitmapToPixels(imageSource, targetWidth, targetHeight, threshold) {
-  const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = targetWidth;
-  tempCanvas.height = targetHeight;
-  const tempCtx = tempCanvas.getContext('2d');
-
-  tempCtx.clearRect(0, 0, targetWidth, targetHeight);
-  tempCtx.drawImage(imageSource, 0, 0, targetWidth, targetHeight);
-
-  const { data } = tempCtx.getImageData(0, 0, targetWidth, targetHeight);
-  const pixels = makePixels(targetWidth, targetHeight);
-
-  for (let y = 0; y < targetHeight; y += 1) {
-    for (let x = 0; x < targetWidth; x += 1) {
-      const index = (y * targetWidth + x) * 4;
-      const r = data[index];
-      const g = data[index + 1];
-      const b = data[index + 2];
-      const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
-      pixels[y][x] = luminance <= threshold;
-    }
-  }
-
-  return pixels;
-}
-
-function importImageFromFile(file) {
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    const image = new Image();
-    image.onload = () => {
-      const { width, height } = clampImportedDimensions(
-        image.naturalWidth || image.width,
-        image.naturalHeight || image.height,
-      );
-
-      const threshold = Number(thresholdInput.value);
-      const importedPixels = bitmapToPixels(image, width, height, threshold);
-
-      state.width = width;
-      state.height = height;
-      state.pixels = importedPixels;
-      widthInput.value = width;
-      heightInput.value = height;
-      renderEditor();
-      renderPreview();
-      refreshCode();
-    };
-    image.src = reader.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-thresholdInput.addEventListener('input', () => {
-  thresholdValue.textContent = thresholdInput.value;
-});
-
-imageInput.addEventListener('change', (event) => {
-  const file = event.target.files && event.target.files[0];
-  if (!file) {
-    importOptions.classList.add('hidden');
-    return;
-  }
-
-  importOptions.classList.remove('hidden');
-  thresholdValue.textContent = thresholdInput.value;
-  state.importedImage = file;
-});
-
-applyImageBtn.addEventListener('click', () => {
-  if (!state.importedImage) {
-    alert('Choose an image first.');
-    return;
-  }
-
-  importImageFromFile(state.importedImage);
-});
 
 resizeBtn.addEventListener('click', () => {
   const width = Number(widthInput.value);
@@ -448,6 +426,30 @@ for (const button of document.querySelectorAll('.tool-button')) {
     state.tool = button.dataset.tool;
   });
 }
+
+// Add drag and drop support for image files
+document.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  canvas.style.opacity = '0.7';
+});
+
+document.addEventListener('dragleave', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  canvas.style.opacity = '1';
+});
+
+document.addEventListener('drop', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  canvas.style.opacity = '1';
+  
+  const files = e.dataTransfer.files;
+  if (files.length > 0) {
+    handleImageUpload(files[0]);
+  }
+});
 
 setCanvasSize(16, 16);
 loadSample();
