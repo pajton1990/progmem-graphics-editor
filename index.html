@@ -30,7 +30,7 @@
               Height
               <input id="heightInput" type="number" min="1" max="256" value="16" />
             </label>
-            <button id="resizeBtn" class="primary">Resize canvas</button>
+            <button id="resizeBtn" class="primary">Resize</button>
             <button id="clearBtn" class="secondary">Clear</button>
             <button id="fillBtn" class="secondary">Fill</button>
           </div>
@@ -39,6 +39,21 @@
             <button class="tool-button active" data-tool="draw">Draw</button>
             <button class="tool-button" data-tool="erase">Erase</button>
             <button class="tool-button" data-tool="invert">Invert</button>
+          </div>
+
+          <div class="image-import-section">
+            <div class="file-input-wrapper">
+              <input id="imageImport" type="file" accept="image/bmp,image/png,image/jpeg,image/jpg" />
+              <label for="imageImport" class="file-input-label">📁 Import image (BMP, PNG, JPG)</label>
+            </div>
+            <div id="importOptions" class="import-options hidden">
+              <label>
+                Threshold
+                <input id="thresholdInput" type="range" min="0" max="255" value="128" />
+                <span id="thresholdValue">128</span>
+              </label>
+              <button id="applyImageBtn" class="primary">Apply</button>
+            </div>
           </div>
 
           <div class="canvas-wrap">
@@ -65,8 +80,8 @@
           <textarea id="codeInput" placeholder="Paste your Arduino PROGMEM array here..." spellcheck="false"></textarea>
 
           <div class="button-row">
-            <button id="loadCodeBtn" class="primary">Load into canvas</button>
-            <button id="previewCodeBtn" class="secondary">Preview only</button>
+            <button id="loadCodeBtn" class="primary">Load</button>
+            <button id="previewCodeBtn" class="secondary">Preview</button>
           </div>
 
           <div class="preview-box">
