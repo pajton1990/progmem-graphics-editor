@@ -166,6 +166,47 @@ input[type="number"] {
   color: var(--accent);
 }
 
+.image-import-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 0 4px;
+}
+
+.file-input-label {
+  gap: 8px;
+}
+
+.import-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.import-options.hidden {
+  display: none;
+}
+
+.import-options label {
+  flex: 1;
+  min-width: 180px;
+}
+
+#thresholdInput {
+  width: min(220px, 100%);
+}
+
+#thresholdValue {
+  color: var(--accent);
+  font-weight: 700;
+}
+
 .canvas-wrap {
   display: flex;
   justify-content: center;
