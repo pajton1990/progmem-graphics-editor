@@ -15,6 +15,11 @@ const copyCodeBtn = document.getElementById('copyCodeBtn');
 const loadCodeBtn = document.getElementById('loadCodeBtn');
 const previewCodeBtn = document.getElementById('previewCodeBtn');
 const loadSampleBtn = document.getElementById('loadSampleBtn');
+const imageInput = document.getElementById('imageImport');
+const importOptions = document.getElementById('importOptions');
+const thresholdInput = document.getElementById('thresholdInput');
+const thresholdValue = document.getElementById('thresholdValue');
+const applyImageBtn = document.getElementById('applyImageBtn');
 
 const state = {
   width: 16,
@@ -116,25 +121,6 @@ function getMouseCell(event) {
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
-}
-
-function applyToolAtCell(x, y) {
-  if (x < 0 || y < 0 || x >= state.width || y >= state.height) return;
-
-  if (state.tool === 'draw') {
-    state.pixels[y][x] = true;
-    state.dragValue = true;
-  } else if (state.tool === 'erase') {
-    state.pixels[y][x] = false;
-    state.dragValue = false;
-  } else if (state.tool === 'invert') {
-    state.pixels[y][x] = !state.pixels[y][x];
-    state.dragValue = state.pixels[y][x];
-  }
-
-  renderEditor();
-  renderPreview();
-  refreshCode();
 }
 
 function refreshCode() {
@@ -287,6 +273,99 @@ function handleCanvasPointerMove(event) {
 function handleCanvasPointerUp() {
   state.isDragging = false;
 }
+
+function clampImportedDimensions(width, height) {
+  const maxSide = 256;
+  const maxRatio = Math.max(width, height);
+
+  if (maxRatio <= maxSide) {
+    return { width, height };
+  }
+
+  const scale = maxSide / maxRatio;
+  return {
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale)),
+  };
+}
+
+function bitmapToPixels(imageSource, targetWidth, targetHeight, threshold) {
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = targetWidth;
+  tempCanvas.height = targetHeight;
+  const tempCtx = tempCanvas.getContext('2d');
+
+  tempCtx.clearRect(0, 0, targetWidth, targetHeight);
+  tempCtx.drawImage(imageSource, 0, 0, targetWidth, targetHeight);
+
+  const data = tempCtx.getImageData(0, 0, targetWidth, targetHeight).data;
+  const pixels = makePixels(targetWidth, targetHeight);
+
+  for (let y = 0; y < targetHeight; y += 1) {
+    for (let x = 0; x < targetWidth; x += 1) {
+      const index = (y * targetWidth + x) * 4;
+      const r = data[index];
+      const g = data[index + 1];
+      const b = data[index + 2];
+      const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+      pixels[y][x] = luminance <= threshold;
+    }
+  }
+
+  return pixels;
+}
+
+function importImageFromFile(file) {
+  if (!file) {
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const image = new Image();
+    image.onload = () => {
+      const { width, height } = clampImportedDimensions(
+        image.naturalWidth || image.width,
+        image.naturalHeight || image.height,
+      );
+
+      const threshold = Number(thresholdInput.value);
+      setCanvasSize(width, height);
+      state.pixels = bitmapToPixels(image, width, height, threshold);
+      renderEditor();
+      renderPreview();
+      refreshCode();
+      importOptions.classList.remove('hidden');
+    };
+    image.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+thresholdInput.addEventListener('input', () => {
+  thresholdValue.textContent = thresholdInput.value;
+});
+
+imageInput.addEventListener('change', (event) => {
+  const file = event.target.files && event.target.files[0];
+  if (!file) {
+    importOptions.classList.add('hidden');
+    return;
+  }
+
+  importOptions.classList.remove('hidden');
+  thresholdValue.textContent = thresholdInput.value;
+});
+
+applyImageBtn.addEventListener('click', () => {
+  const file = imageInput.files && imageInput.files[0];
+  if (!file) {
+    alert('Choose an image file first.');
+    return;
+  }
+
+  importImageFromFile(file);
+});
 
 resizeBtn.addEventListener('click', () => {
   const width = Number(widthInput.value);
