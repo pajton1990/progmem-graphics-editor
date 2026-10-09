@@ -138,7 +138,8 @@ label {
   color: var(--muted);
 }
 
-input,
+input[type="number"],
+input[type="text"],
 textarea {
   background: rgba(15, 23, 42, 0.9);
   border: 1px solid rgba(148, 163, 184, 0.18);
@@ -147,8 +148,20 @@ textarea {
   border-radius: 10px;
 }
 
-input[type="number"] {
-  width: 110px;
+input[type="number"],
+input[type="text"] {
+  width: 100%;
+  max-width: 200px;
+}
+
+input[type="range"] {
+  width: 100%;
+  max-width: 220px;
+  cursor: pointer;
+}
+
+input[type="file"] {
+  display: none;
 }
 
 .tool-row {
@@ -170,17 +183,33 @@ input[type="number"] {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 12px 0 4px;
+  padding: 8px 0;
+}
+
+.file-input-wrapper {
+  position: relative;
 }
 
 .file-input-label {
-  gap: 8px;
+  display: block;
+  text-align: center;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(125, 211, 252, 0.4);
+  color: var(--accent);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.file-input-label:hover {
+  background: rgba(56, 189, 248, 0.14);
+  border-color: rgba(125, 211, 252, 0.6);
 }
 
 .import-options {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
   padding: 12px 14px;
@@ -195,16 +224,14 @@ input[type="number"] {
 
 .import-options label {
   flex: 1;
-  min-width: 180px;
-}
-
-#thresholdInput {
-  width: min(220px, 100%);
+  min-width: 120px;
+  gap: 6px;
 }
 
 #thresholdValue {
   color: var(--accent);
   font-weight: 700;
+  margin-left: 8px;
 }
 
 .canvas-wrap {
@@ -225,6 +252,7 @@ input[type="number"] {
   border-radius: 10px;
   display: block;
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.34);
+  cursor: crosshair;
 }
 
 .output-panel {

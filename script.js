@@ -28,6 +28,7 @@ const state = {
   tool: 'draw',
   isDragging: false,
   dragValue: true,
+  importedImage: null,
 };
 
 function makePixels(width, height) {
@@ -238,14 +239,11 @@ function handleCanvasPointerDown(event) {
   const currentValue = state.pixels[cell.y][cell.x];
 
   if (state.tool === 'draw') {
-    state.dragValue = true;
     state.pixels[cell.y][cell.x] = true;
   } else if (state.tool === 'erase') {
-    state.dragValue = false;
     state.pixels[cell.y][cell.x] = false;
   } else if (state.tool === 'invert') {
-    state.dragValue = !currentValue;
-    state.pixels[cell.y][cell.x] = state.dragValue;
+    state.pixels[cell.y][cell.x] = !currentValue;
   }
 
   renderEditor();
@@ -298,7 +296,7 @@ function bitmapToPixels(imageSource, targetWidth, targetHeight, threshold) {
   tempCtx.clearRect(0, 0, targetWidth, targetHeight);
   tempCtx.drawImage(imageSource, 0, 0, targetWidth, targetHeight);
 
-  const data = tempCtx.getImageData(0, 0, targetWidth, targetHeight).data;
+  const { data } = tempCtx.getImageData(0, 0, targetWidth, targetHeight);
   const pixels = makePixels(targetWidth, targetHeight);
 
   for (let y = 0; y < targetHeight; y += 1) {
@@ -316,9 +314,7 @@ function bitmapToPixels(imageSource, targetWidth, targetHeight, threshold) {
 }
 
 function importImageFromFile(file) {
-  if (!file) {
-    return;
-  }
+  if (!file) return;
 
   const reader = new FileReader();
   reader.onload = () => {
@@ -330,12 +326,16 @@ function importImageFromFile(file) {
       );
 
       const threshold = Number(thresholdInput.value);
-      setCanvasSize(width, height);
-      state.pixels = bitmapToPixels(image, width, height, threshold);
+      const importedPixels = bitmapToPixels(image, width, height, threshold);
+
+      state.width = width;
+      state.height = height;
+      state.pixels = importedPixels;
+      widthInput.value = width;
+      heightInput.value = height;
       renderEditor();
       renderPreview();
       refreshCode();
-      importOptions.classList.remove('hidden');
     };
     image.src = reader.result;
   };
@@ -355,16 +355,16 @@ imageInput.addEventListener('change', (event) => {
 
   importOptions.classList.remove('hidden');
   thresholdValue.textContent = thresholdInput.value;
+  state.importedImage = file;
 });
 
 applyImageBtn.addEventListener('click', () => {
-  const file = imageInput.files && imageInput.files[0];
-  if (!file) {
-    alert('Choose an image file first.');
+  if (!state.importedImage) {
+    alert('Choose an image first.');
     return;
   }
 
-  importImageFromFile(file);
+  importImageFromFile(state.importedImage);
 });
 
 resizeBtn.addEventListener('click', () => {
