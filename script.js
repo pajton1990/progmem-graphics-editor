@@ -15,6 +15,11 @@ const copyCodeBtn = document.getElementById('copyCodeBtn');
 const loadCodeBtn = document.getElementById('loadCodeBtn');
 const previewCodeBtn = document.getElementById('previewCodeBtn');
 const loadSampleBtn = document.getElementById('loadSampleBtn');
+const imageImport = document.getElementById('imageImport');
+const applyImageBtn = document.getElementById('applyImageBtn');
+const importOptions = document.getElementById('importOptions');
+const thresholdInput = document.getElementById('thresholdInput');
+const thresholdValue = document.getElementById('thresholdValue');
 
 const state = {
   width: 16,
@@ -23,6 +28,7 @@ const state = {
   tool: 'draw',
   isDragging: false,
   dragValue: true,
+  importedImage: null,
 };
 
 function makePixels(width, height) {
@@ -246,7 +252,7 @@ function parseCodeIntoPixels(source) {
   refreshCode();
 }
 
-function imageToPixels(imageData, targetWidth, targetHeight) {
+function imageToPixels(imageData, targetWidth, targetHeight, threshold) {
   const pixels = makePixels(targetWidth, targetHeight);
   
   for (let y = 0; y < targetHeight; y += 1) {
@@ -264,8 +270,8 @@ function imageToPixels(imageData, targetWidth, targetHeight) {
       // Convert to grayscale
       const gray = (r + g + b) / 3;
       
-      // Threshold: pixel is "on" if darker than 128
-      pixels[y][x] = gray < 128;
+      // Threshold: pixel is "on" if darker than threshold
+      pixels[y][x] = gray < threshold;
     }
   }
   
@@ -289,18 +295,29 @@ function handleImageUpload(file) {
       const tempCtx = tempCanvas.getContext('2d');
       tempCtx.drawImage(img, 0, 0);
       
-      const imageData = tempCtx.getImageData(0, 0, img.width, img.height);
+      state.importedImage = tempCtx.getImageData(0, 0, img.width, img.height);
       
-      // Convert image to pixels respecting current canvas size
-      state.pixels = imageToPixels(imageData, state.width, state.height);
-      
-      renderEditor();
-      renderPreview();
-      refreshCode();
+      // Show import options
+      importOptions.classList.remove('hidden');
     };
     img.src = event.target.result;
   };
   reader.readAsDataURL(file);
+}
+
+function applyImage() {
+  if (!state.importedImage) return;
+  
+  const threshold = Number(thresholdInput.value);
+  state.pixels = imageToPixels(state.importedImage, state.width, state.height, threshold);
+  
+  renderEditor();
+  renderPreview();
+  refreshCode();
+  
+  // Hide import options and reset file input
+  importOptions.classList.add('hidden');
+  imageImport.value = '';
 }
 
 function handleCanvasPointerDown(event) {
@@ -413,6 +430,18 @@ previewCodeBtn.addEventListener('click', () => {
 loadSampleBtn.addEventListener('click', loadSample);
 
 symbolNameInput.addEventListener('input', refreshCode);
+
+imageImport.addEventListener('change', (e) => {
+  if (e.target.files.length > 0) {
+    handleImageUpload(e.target.files[0]);
+  }
+});
+
+applyImageBtn.addEventListener('click', applyImage);
+
+thresholdInput.addEventListener('input', (e) => {
+  thresholdValue.textContent = e.target.value;
+});
 
 canvas.addEventListener('pointerdown', handleCanvasPointerDown);
 canvas.addEventListener('pointermove', handleCanvasPointerMove);
