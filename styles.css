@@ -1,0 +1,249 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #0f172a;
+  --bg-alt: #111827;
+  --panel: #111827;
+  --panel-muted: #1f2937;
+  --panel-soft: #0b1220;
+  --accent: #7dd3fc;
+  --accent-strong: #38bdf8;
+  --text: #e5eefc;
+  --muted: #9bb0cf;
+  --grid: rgba(148, 163, 184, 0.35);
+  --canvas-bg: #ffffff;
+  --positive: #86efac;
+  --negative: #fca5a5;
+  --shadow: rgba(15, 23, 42, 0.42);
+}
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  font-family: Inter, "Segoe UI", sans-serif;
+  background: linear-gradient(135deg, #020817 0%, #0f172a 40%, #111827 100%);
+  color: var(--text);
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  border: none;
+  background: #1f2937;
+  color: var(--text);
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button.primary {
+  background: linear-gradient(135deg, var(--accent-strong), #3b82f6);
+  color: #08111d;
+  font-weight: 700;
+}
+
+button.secondary {
+  background: #1f2937;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.app-shell {
+  width: min(1400px, 100%);
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 22px;
+  box-shadow: 0 24px 60px var(--shadow);
+  backdrop-filter: blur(12px);
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 26px 18px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: var(--accent);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 2vw, 2.4rem);
+}
+
+.header-actions,
+.button-row,
+.toolbar,
+.tool-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(360px, 0.9fr);
+  gap: 20px;
+  padding: 22px;
+}
+
+.panel {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(17, 24, 39, 0.94));
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.editor-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.toolbar {
+  justify-content: flex-start;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+input,
+textarea {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  color: var(--text);
+  padding: 0.7rem 0.8rem;
+  border-radius: 10px;
+}
+
+input[type="number"] {
+  width: 110px;
+}
+
+.tool-row {
+  justify-content: flex-start;
+}
+
+.tool-button {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.tool-button.active {
+  background: rgba(56, 189, 248, 0.14);
+  border-color: rgba(125, 211, 252, 0.5);
+  color: var(--accent);
+}
+
+.canvas-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 560px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.55), rgba(30, 41, 59, 0.7));
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  overflow: auto;
+  padding: 18px;
+}
+
+#drawingCanvas,
+#previewCanvas {
+  background: var(--canvas-bg);
+  border-radius: 10px;
+  display: block;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.34);
+}
+
+.output-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.spaced-top {
+  margin-top: 8px;
+}
+
+.compact {
+  margin-bottom: 8px;
+}
+
+.symbol-field {
+  margin-top: 4px;
+}
+
+#codeOutput,
+#codeInput {
+  width: 100%;
+  min-height: 180px;
+  resize: vertical;
+}
+
+.preview-box {
+  background: rgba(15, 23, 42, 0.52);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 16px;
+  padding: 14px;
+  margin-top: 6px;
+}
+
+#previewCanvas {
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+  margin: 0 auto;
+}
+
+@media (max-width: 980px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

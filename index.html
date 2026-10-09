@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PROGMEM Graphics Editor</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Arduino graphics</p>
+          <h1>PROGMEM Graphics Editor</h1>
+        </div>
+        <div class="header-actions">
+          <button id="loadSampleBtn" class="secondary">Load sample</button>
+          <button id="copyCodeBtn" class="primary">Copy code</button>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="panel editor-panel">
+          <div class="toolbar">
+            <label>
+              Width
+              <input id="widthInput" type="number" min="1" max="256" value="16" />
+            </label>
+            <label>
+              Height
+              <input id="heightInput" type="number" min="1" max="256" value="16" />
+            </label>
+            <button id="resizeBtn" class="primary">Resize canvas</button>
+            <button id="clearBtn" class="secondary">Clear</button>
+            <button id="fillBtn" class="secondary">Fill</button>
+          </div>
+
+          <div class="tool-row">
+            <button class="tool-button active" data-tool="draw">Draw</button>
+            <button class="tool-button" data-tool="erase">Erase</button>
+            <button class="tool-button" data-tool="invert">Invert</button>
+          </div>
+
+          <div class="canvas-wrap">
+            <canvas id="drawingCanvas" width="400" height="400"></canvas>
+          </div>
+        </section>
+
+        <aside class="panel output-panel">
+          <div class="section-header">
+            <h2>Generated code</h2>
+          </div>
+
+          <label class="symbol-field">
+            Symbol name
+            <input id="symbolName" type="text" value="sprite" />
+          </label>
+
+          <textarea id="codeOutput" spellcheck="false" readonly></textarea>
+
+          <div class="section-header spaced-top">
+            <h2>Paste code</h2>
+          </div>
+
+          <textarea id="codeInput" placeholder="Paste your Arduino PROGMEM array here..." spellcheck="false"></textarea>
+
+          <div class="button-row">
+            <button id="loadCodeBtn" class="primary">Load into canvas</button>
+            <button id="previewCodeBtn" class="secondary">Preview only</button>
+          </div>
+
+          <div class="preview-box">
+            <div class="section-header compact">
+              <h2>Preview</h2>
+            </div>
+            <canvas id="previewCanvas" width="200" height="200"></canvas>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
